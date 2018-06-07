@@ -1,0 +1,37 @@
+{
+    "title": "Cheerio Crawler input",
+    "type": "object",
+    "properties": {
+        "sources": {
+            "title": "Request sources",
+            "type": "string",
+            "description": "Request list sources",
+            "ui": "json"
+        },
+        "cheerioFunction": {
+            "title": "Cheerio function",
+            "type": "string",
+            "description": "Function executed for each request",
+            "ui": "js"
+        },
+        "useRequestQueue": {
+            "title": "Do you need request queue?",
+            "type": "string",
+            "description": "Request queue enables recursive crawling",
+            "enum": ["Yes", "No"]
+        },
+        "clickableElementsSelector": {
+            "title": "Clickable elements selector",
+            "type": "string",
+            "description": "CSS selector matching elements to be clicked",
+            "ui": "textfield"
+        },
+        "pseudoUrls": {
+            "title": "Pseudo-URLs",
+            "type": "string",
+            "description": "Pseudo-URLs matching requests you want to enqueue",
+            "ui": "js"
+        }
+    },
+    "required": ["sources", "cheerioFunction"]
+}
