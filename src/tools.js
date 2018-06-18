@@ -10,17 +10,17 @@ exports.requestToRpOpts = (request) => {
     return opts;
 };
 
-exports.evalCheerioFunctionOrThrow = (funcString) => {
+exports.evalPageFunctionOrThrow = (funcString) => {
     let func;
 
     try {
         func = eval(funcString); // eslint-disable-line
     } catch (err) {
-        log.exception(err, 'Cannot evaluate input parameter "cheerioFunction"!');
+        log.exception(err, 'Cannot evaluate input parameter "pageFunction"!');
         throw err;
     }
 
-    if (!_.isFunction(func)) throw new Error('Input parameter "cheerioFunction" is not a function!');
+    if (!_.isFunction(func)) throw new Error('Input parameter "pageFunction" is not a function!');
 
     return func;
 };

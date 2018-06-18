@@ -2,14 +2,14 @@
     "title": "Cheerio Crawler input",
     "type": "object",
     "properties": {
-        "sources": {
-            "title": "Request sources",
+        "startUrls": {
+            "title": "Start URLs",
             "type": "string",
-            "description": "Request list sources",
+            "description": "URLs to start with",
             "ui": "json"
         },
-        "cheerioFunction": {
-            "title": "Cheerio function",
+        "pageFunction": {
+            "title": "Page function",
             "type": "string",
             "description": "Function executed for each request",
             "ui": "js"
@@ -33,5 +33,5 @@
             "ui": "js"
         }
     },
-    "required": ["sources", "cheerioFunction"]
+    "required": ["startUrls", "pageFunction"]
 }

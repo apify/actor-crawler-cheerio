@@ -13,22 +13,22 @@ Apify.main(async () => {
 
     let {
         useRequestQueue,
+        startUrls,
         pseudoUrls,
-        sources,
     } = input;
 
     const {
-        cheerioFunction,
+        pageFunction,
         clickableElementsSelector = 'a',
     } = input;
 
     if (useRequestQueue === 'Yes') useRequestQueue = true;
     if (useRequestQueue === 'No') useRequestQueue = false;
+    startUrls = tools.maybeParseJson(startUrls, 'startUrls');
     pseudoUrls = tools.maybeParseJson(pseudoUrls, 'pseudoUrls');
-    sources = tools.maybeParseJson(sources, 'sources');
 
-    if (!_.isArray(sources) || !sources.length) throw new Error('Input paremeter "sources" must contain at least one URL!');
-    if (!_.isString(cheerioFunction) || !cheerioFunction) throw new Error('Input paremeter "cheerioFunction" is required!');
+    if (!_.isArray(startUrls) || !startUrls.length) throw new Error('Input paremeter "startUrls" must contain at least one URL!');
+    if (!_.isString(pageFunction) || !pageFunction) throw new Error('Input paremeter "pageFunction" is required!');
     if (!_.isBoolean(useRequestQueue)) throw new Error('Input parameter "useRequestQueue" must be a boolean!');
     if (!_.isString(clickableElementsSelector)) throw new Error('Input parameter "clickableElementsSelector" must be a string!');
     if (!_.isArray(pseudoUrls)) throw new Error('Input parameter "pseudoUrls" must be an pseudoUrls!');
@@ -37,9 +37,9 @@ Apify.main(async () => {
         pseudoUrls[index] = new Apify.PseudoUrl(item.purl, item.requestTemplate);
     });
 
-    const evaledCheerioFunction = tools.evalCheerioFunctionOrThrow(cheerioFunction);
+    const evaledPageFunction = tools.evalPageFunctionOrThrow(pageFunction);
     const crawlerOpts = {
-        requestList: new Apify.RequestList({ sources }),
+        requestList: new Apify.RequestList({ sources: startUrls }),
 
         handleFailedRequestFunction: async ({ request }) => {
             await Apify.pushData(request);
@@ -65,7 +65,7 @@ Apify.main(async () => {
                 }
             }
 
-            const cheerioFunctionResult = await evaledCheerioFunction({
+            const pageFunctionResult = await evaledPageFunction({
                 request,
                 html,
                 requestList: crawlerOpts.requestList,
@@ -73,7 +73,7 @@ Apify.main(async () => {
                 $,
             });
 
-            await Apify.pushData(Object.assign({}, request, { cheerioFunctionResult }));
+            await Apify.pushData(Object.assign({}, request, { pageFunctionResult }));
         },
     };
     if (useRequestQueue) crawlerOpts.requestQueue = await Apify.openRequestQueue();
