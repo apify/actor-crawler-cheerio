@@ -20,11 +20,30 @@
             "description": "Request queue enables recursive crawling",
             "enum": ["Yes", "No"]
         },
+        "verboseLog": {
+            "title": "Verbose log?",
+            "type": "string",
+            "description": "Debug messages will be included in the log.",
+            "enum": ["Yes", "No"]
+        },
+        "disableWebSecurity": {
+            "title": "Disable web security?",
+            "type": "string",
+            "description": "Crawler will ignore SSL certificate errors.",
+            "enum": ["Yes", "No"]
+        },
         "clickableElementsSelector": {
             "title": "Clickable elements selector",
             "type": "string",
             "description": "CSS selector matching elements to be clicked",
             "ui": "textfield"
+        },
+        "maxPagesPerCrawl": {
+            "title": "Miximum pages per crawl",
+            "type": "integer",
+            "description": "Maximum number of pages that the crawler will open.",
+            "minimum": 0,
+            "default": 0
         },
         "pseudoUrls": {
             "title": "Pseudo-URLs",
@@ -33,5 +52,5 @@
             "ui": "js"
         }
     },
-    "required": ["startUrls", "pageFunction"]
+    "required": ["startUrls", "pageFunction", "maxPagesPerCrawl"]
 }

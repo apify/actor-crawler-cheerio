@@ -4,7 +4,7 @@
 	"description": "Crawl a number of web pages using headless Chrome and Puppeteer",
 	"main": "src/main.js",
 	"dependencies": {
-		"apify": "^0.5.37",
+		"apify": "^0.5.39",
 		"apify-shared": "0.0.37",
 		"bluebird": "^3.5.1",
 		"cheerio": "^1.0.0-rc.2",
@@ -43,6 +43,6 @@
 	"contributors": [
 		"Marek Trunkat <marek@apify.com>"
 	],
-    "license": "Apache-2.0",
+	"license": "Apache-2.0",
 	"homepage": "https://github.com/apifytech/act-crawler-cheerio"
 }
