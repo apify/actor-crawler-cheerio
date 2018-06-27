@@ -23,7 +23,8 @@
             "type": "boolean",
             "description": "Request queue enables recursive crawling",
             "default": false,
-            "group": "Options"
+            "groupTitle": "Options",
+            "groupDescription": "Various crawler settings"
         },
         "verboseLog": {
             "title": "Verbose log",
