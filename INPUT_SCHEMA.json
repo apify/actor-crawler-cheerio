@@ -4,11 +4,12 @@
     "properties": {
         "startUrls": {
             "title": "Start URLs",
-            "type": "json",
+            "type": "object",
             "description": "URLs to start with",
             "default": [
                 { "url": "http://example.com" }
-            ]
+            ],
+            "ui": "json"
         },
         "pageFunction": {
             "title": "Page function",
