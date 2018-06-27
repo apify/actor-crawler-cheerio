@@ -20,11 +20,9 @@
         },
         "useRequestQueue": {
             "title": "Do you need request queue?",
-            "type": "string",
+            "type": "boolean",
             "description": "Request queue enables recursive crawling",
-            "enum": ["Yes", "No"],
-            "enum_titles": ["Yes", "No"],
-            "default": "No"
+            "default": false
         },
         "verboseLog": {
             "title": "Verbose log?",
