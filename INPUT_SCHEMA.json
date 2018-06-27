@@ -20,7 +20,7 @@
         },
         "useRequestQueue": {
             "title": "Do you need request queue?",
-            "type": "boolean",
+            "type": "string",
             "description": "Request queue enables recursive crawling",
             "enum": ["Yes", "No"],
             "enum_titles": ["Yes", "No"],
@@ -28,7 +28,7 @@
         },
         "verboseLog": {
             "title": "Verbose log?",
-            "type": "boolean",
+            "type": "string",
             "description": "Debug messages will be included in the log.",
             "enum": ["Yes", "No"],
             "enum_titles": ["Yes", "No"],
@@ -36,7 +36,7 @@
         },
         "disableWebSecurity": {
             "title": "Disable web security?",
-            "type": "boolean",
+            "type": "string",
             "description": "Crawler will ignore SSL certificate errors.",
             "enum": ["Yes", "No"],
             "enum_titles": ["Yes", "No"],
