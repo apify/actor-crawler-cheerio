@@ -50,7 +50,8 @@
             "type": "integer",
             "description": "Maximum number of pages that the crawler will open.",
             "minimum": 0,
-            "default": 0
+            "default": 0,
+            "unit": "Pages"
         },
         "pseudoUrls": {
             "title": "Pseudo-URLs",
