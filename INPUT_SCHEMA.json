@@ -4,7 +4,7 @@
     "properties": {
         "startUrls": {
             "title": "Start URLs",
-            "type": "object",
+            "type": "array",
             "description": "URLs to start with",
             "default": [
                 { "url": "http://example.com" }
