@@ -22,25 +22,25 @@
             "title": "Do you need request queue?",
             "type": "boolean",
             "description": "Request queue enables recursive crawling",
-            "enum": [true, false],
+            "enum": ["Yes", "No"],
             "enum_titles": ["Yes", "No"],
-            "default": false
+            "default": "No"
         },
         "verboseLog": {
             "title": "Verbose log?",
             "type": "boolean",
             "description": "Debug messages will be included in the log.",
-            "enum": [true, false],
+            "enum": ["Yes", "No"],
             "enum_titles": ["Yes", "No"],
-            "default": true
+            "default": "Yes"
         },
         "disableWebSecurity": {
             "title": "Disable web security?",
             "type": "boolean",
             "description": "Crawler will ignore SSL certificate errors.",
-            "enum": [true, false],
+            "enum": ["Yes", "No"],
             "enum_titles": ["Yes", "No"],
-            "default": true
+            "default": "Yes"
         },
         "clickableElementsSelector": {
             "title": "Clickable elements selector",
