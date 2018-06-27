@@ -19,26 +19,23 @@
             "ui": "js"
         },
         "useRequestQueue": {
-            "title": "Do you need request queue?",
+            "title": "Use request queue",
             "type": "boolean",
             "description": "Request queue enables recursive crawling",
-            "default": false
+            "default": false,
+            "group": "Options"
         },
         "verboseLog": {
-            "title": "Verbose log?",
-            "type": "string",
+            "title": "Verbose log",
+            "type": "boolean",
             "description": "Debug messages will be included in the log.",
-            "enum": ["Yes", "No"],
-            "enum_titles": ["Yes", "No"],
-            "default": "Yes"
+            "default": true
         },
         "disableWebSecurity": {
             "title": "Disable web security?",
-            "type": "string",
+            "type": "boolean",
             "description": "Crawler will ignore SSL certificate errors.",
-            "enum": ["Yes", "No"],
-            "enum_titles": ["Yes", "No"],
-            "default": "Yes"
+            "default": false
         },
         "clickableElementsSelector": {
             "title": "Clickable elements selector",
