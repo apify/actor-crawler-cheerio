@@ -15,31 +15,36 @@
             "title": "Page function",
             "type": "string",
             "description": "Function executed for each request",
+            "default": "async () => {\n  return $('title').text();\n\n}",
             "ui": "js"
         },
         "useRequestQueue": {
             "title": "Do you need request queue?",
             "type": "string",
             "description": "Request queue enables recursive crawling",
-            "enum": ["Yes", "No"]
+            "enum": ["Yes", "No"],
+            "default": "No"
         },
         "verboseLog": {
             "title": "Verbose log?",
             "type": "string",
             "description": "Debug messages will be included in the log.",
-            "enum": ["Yes", "No"]
+            "enum": ["Yes", "No"],
+            "default": "Yes"
         },
         "disableWebSecurity": {
             "title": "Disable web security?",
             "type": "string",
             "description": "Crawler will ignore SSL certificate errors.",
-            "enum": ["Yes", "No"]
+            "enum": ["Yes", "No"],
+            "default": "Yes"
         },
         "clickableElementsSelector": {
             "title": "Clickable elements selector",
             "type": "string",
             "description": "CSS selector matching elements to be clicked",
-            "ui": "textfield"
+            "ui": "textfield",
+            "default": "a"
         },
         "maxPagesPerCrawl": {
             "title": "Miximum pages per crawl",
