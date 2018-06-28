@@ -55,9 +55,9 @@
         },
         "pseudoUrls": {
             "title": "Pseudo-URLs",
-            "type": "string",
+            "type": "array",
             "description": "Pseudo-URLs matching requests you want to enqueue",
-            "ui": "js"
+            "ui": "json"
         }
     },
     "required": ["startUrls", "pageFunction", "maxPagesPerCrawl"]
