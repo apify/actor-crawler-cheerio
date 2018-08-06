@@ -2,6 +2,7 @@ const log = require('apify-shared/log');
 const _ = require('underscore');
 const Promise = require('bluebird');
 const { resolve } = require('url');
+const vm = require('vm');
 
 exports.requestToRpOpts = (request) => {
     const opts = _.pick(request, 'url', 'method', 'headers');
@@ -14,7 +15,7 @@ exports.evalPageFunctionOrThrow = (funcString) => {
     let func;
 
     try {
-        func = eval(funcString); // eslint-disable-line
+        func = vm.runInNewContext(funcString, Object.create(null)); // "secure" the context by removing prototypes
     } catch (err) {
         log.exception(err, 'Cannot evaluate input parameter "pageFunction"!');
         throw err;
