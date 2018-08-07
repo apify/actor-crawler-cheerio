@@ -1,8 +1,9 @@
 const log = require('apify-shared/log');
 const _ = require('underscore');
-const Promise = require('bluebird');
 const { resolve } = require('url');
 const vm = require('vm');
+const Ajv = require('ajv');
+const schema = require('../INPUT_SCHEMA.json');
 
 exports.requestToRpOpts = (request) => {
     const opts = _.pick(request, 'url', 'method', 'headers');
@@ -53,4 +54,10 @@ exports.maybeParseJson = (maybeJson, paramName) => {
     } catch (err) {
         throw new Error(`Input parameter ${paramName} is not valid JSON: ${err}`);
     }
+};
+
+exports.checkInputOrThrow = (input) => {
+    const ajv = new Ajv({ allErrors: true, useDefaults: true });
+    const valid = ajv.validate(schema, input);
+    if (!valid) throw new Error(`Invalid input:\n${ajv.errors}`);
 };

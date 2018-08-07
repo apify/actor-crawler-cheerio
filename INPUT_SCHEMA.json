@@ -32,8 +32,8 @@
             "description": "Debug messages will be included in the log.",
             "default": true
         },
-        "disableWebSecurity": {
-            "title": "Disable web security?",
+        "ignoreSslErrors": {
+            "title": "Ignore SSL errors?",
             "type": "boolean",
             "description": "Crawler will ignore SSL certificate errors.",
             "default": false

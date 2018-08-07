@@ -4,6 +4,7 @@
 	"description": "Crawl a number of web pages using headless Chrome and Puppeteer",
 	"main": "src/main.js",
 	"dependencies": {
+		"ajv": "^6.5.2",
 		"apify": "^0.5.39",
 		"apify-shared": "0.0.37",
 		"bluebird": "^3.5.1",
