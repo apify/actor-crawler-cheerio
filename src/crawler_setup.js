@@ -1,6 +1,7 @@
 const Apify = require('apify');
-const log = require('apify-shared/log');
 const tools = require('./tools');
+
+const { utils: { log } } = Apify;
 
 class CrawlerSetup {
     constructor(input) {

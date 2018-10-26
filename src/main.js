@@ -1,8 +1,9 @@
 const Apify = require('apify');
 const _ = require('underscore');
-const log = require('apify-shared/log');
 const { ENV_VARS } = require('apify-shared/consts');
 const CrawlerSetup = require('./crawler_setup');
+
+const { utils: { log } } = Apify;
 
 log.logJson = false;
 

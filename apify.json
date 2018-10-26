@@ -1,11 +1,10 @@
 {
 	"name": "crawler-cheerio",
-	"actId": "mtrunkat/crawler-cheerio",
+	"actId": "mnmkng/crawler-cheerio",
 	"version": {
 		"versionNumber": "0.1",
 		"buildTag": "latest",
 		"envVars": [],
-		"sourceType": "TARBALL",
-		"tarballUrl": "https://api.apify.com/v2/key-value-stores/8gT83gTQN4Zp3o26Y/records/crawler-cheerio-0.1.zip?disableRedirect=true"
+		"sourceType": "TARBALL"
 	}
 }

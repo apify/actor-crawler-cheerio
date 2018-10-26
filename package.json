@@ -1,15 +1,12 @@
 {
-	"name": "act-crawler-cheerio",
+	"name": "actor-crawler-cheerio",
 	"version": "1.0.0",
 	"description": "Crawl a number of web pages using headless Chrome and Puppeteer",
 	"main": "src/main.js",
 	"dependencies": {
 		"ajv": "^6.5.2",
-		"apify": "^0.5.39",
-		"apify-shared": "0.0.37",
-		"bluebird": "^3.5.1",
-		"cheerio": "^1.0.0-rc.2",
-		"request-promise": "^4.2.2",
+		"apify": "^0.8.16",
+		"apify-shared": "0.1.7",
 		"underscore": "^1.9.0"
 	},
 	"devDependencies": {
@@ -34,7 +31,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/apifytech/act-crawler-cheerio"
+		"url": "https://github.com/apifytech/actor-crawler-cheerio"
 	},
 	"author": {
 		"name": "Apify",
@@ -42,8 +39,9 @@
 		"url": "https://www.apify.com"
 	},
 	"contributors": [
-		"Marek Trunkat <marek@apify.com>"
+		"Marek Trunkat <marek@apify.com>",
+		"Ondra Urban <ondra@apify.com>"
 	],
 	"license": "Apache-2.0",
-	"homepage": "https://github.com/apifytech/act-crawler-cheerio"
+	"homepage": "https://github.com/apifytech/actor-crawler-cheerio"
 }

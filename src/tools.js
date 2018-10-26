@@ -1,9 +1,11 @@
-const log = require('apify-shared/log');
+const Apify = require('apify');
 const _ = require('underscore');
 const { resolve } = require('url');
 const vm = require('vm');
 const Ajv = require('ajv');
 const schema = require('../INPUT_SCHEMA.json');
+
+const { utils: { log } } = Apify;
 
 exports.requestToRpOpts = (request) => {
     const opts = _.pick(request, 'url', 'method', 'headers');

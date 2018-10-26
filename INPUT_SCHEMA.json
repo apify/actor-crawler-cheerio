@@ -15,16 +15,16 @@
             "title": "Page function",
             "type": "string",
             "description": "Function executed for each request",
-            "default": "async () => {\n  return $('title').text();\n\n}",
+            "prefill": "async () => {\n  return $('title').text();\n\n}",
             "ui": "js"
         },
         "useRequestQueue": {
             "title": "Use request queue",
             "type": "boolean",
-            "description": "Request queue enables recursive crawling",
+            "description": "Request queue enables recursive crawling.",
             "default": false,
             "groupTitle": "Options",
-            "groupDescription": "Various crawler settings"
+            "groupDescription": "Crawler settings"
         },
         "verboseLog": {
             "title": "Verbose log",
@@ -41,12 +41,12 @@
         "clickableElementsSelector": {
             "title": "Clickable elements selector",
             "type": "string",
-            "description": "CSS selector matching elements to be clicked",
+            "description": "CSS selector matching elements to be clicked.",
             "ui": "textfield",
             "default": "a"
         },
         "maxPagesPerCrawl": {
-            "title": "Miximum pages per crawl",
+            "title": "Maximum number of pages to crawl",
             "type": "integer",
             "description": "Maximum number of pages that the crawler will open.",
             "minimum": 0,
