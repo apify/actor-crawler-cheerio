@@ -1,36 +1,38 @@
 {
     "title": "Cheerio Crawler input",
     "type": "object",
+    "schemaVersion": 1,
     "properties": {
         "startUrls": {
             "title": "Start URLs",
             "type": "array",
             "description": "URLs to start with",
-            "default": [
-                { "url": "http://example.com" }
+            "prefill": [
+                { "url": "http://example.com" },
+                { "url": "http://example.com/some-path" }
             ],
-            "ui": "json"
+            "editor": "requestListSources"
         },
         "pageFunction": {
             "title": "Page function",
             "type": "string",
             "description": "Function executed for each request",
             "prefill": "async () => {\n  return $('title').text();\n\n}",
-            "ui": "js"
+            "editor": "javascript"
         },
         "useRequestQueue": {
             "title": "Use request queue",
             "type": "boolean",
             "description": "Request queue enables recursive crawling.",
             "default": false,
-            "groupTitle": "Options",
+            "groupCaption": "Options",
             "groupDescription": "Crawler settings"
         },
         "verboseLog": {
             "title": "Verbose log",
             "type": "boolean",
             "description": "Debug messages will be included in the log.",
-            "default": true
+            "default": false
         },
         "ignoreSslErrors": {
             "title": "Ignore SSL errors?",
@@ -42,7 +44,7 @@
             "title": "Clickable elements selector",
             "type": "string",
             "description": "CSS selector matching elements to be clicked.",
-            "ui": "textfield",
+            "editor": "textfield",
             "default": "a"
         },
         "maxPagesPerCrawl": {
@@ -57,8 +59,8 @@
             "title": "Pseudo-URLs",
             "type": "array",
             "description": "Pseudo-URLs matching requests you want to enqueue",
-            "ui": "json"
+            "editor": "json"
         }
     },
-    "required": ["startUrls", "pageFunction", "maxPagesPerCrawl"]
+    "required": ["startUrls", "pageFunction"]
 }
