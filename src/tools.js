@@ -1,11 +1,8 @@
-const Apify = require('apify');
 const _ = require('underscore');
 const { resolve } = require('url');
 const vm = require('vm');
 const Ajv = require('ajv');
 const schema = require('../INPUT_SCHEMA.json');
-
-const { utils: { log } } = Apify;
 
 exports.requestToRpOpts = (request) => {
     const opts = _.pick(request, 'url', 'method', 'headers');
@@ -18,10 +15,9 @@ exports.evalPageFunctionOrThrow = (funcString) => {
     let func;
 
     try {
-        func = vm.runInNewContext(funcString, Object.create(null)); // "secure" the context by removing prototypes
+        func = vm.runInThisContext(funcString);
     } catch (err) {
-        log.exception(err, 'Cannot evaluate input parameter "pageFunction"!');
-        throw err;
+        throw new Error(`Compilation of pageFunction failed.\n${err.stack.substr(err.stack.indexOf('\n'))}`);
     }
 
     if (!_.isFunction(func)) throw new Error('Input parameter "pageFunction" is not a function!');
@@ -45,7 +41,11 @@ exports.enqueueLinks = async ($, selector, purls, requestQueue, parentUrl) => {
             .forEach(purl => requests.push(purl.createRequest(url)));
     });
 
-    return Promise.mapSeries(requests, request => requestQueue.addRequest(request));
+    const requestOperationInfos = [];
+    for (const request of requests) {
+        requestOperationInfos.push(await requestQueue.addRequest(request));
+    }
+    return requestOperationInfos;
 };
 
 exports.maybeParseJson = (maybeJson, paramName) => {
