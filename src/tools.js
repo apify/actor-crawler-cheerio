@@ -61,5 +61,5 @@ exports.maybeParseJson = (maybeJson, paramName) => {
 exports.checkInputOrThrow = (input) => {
     const ajv = new Ajv({ allErrors: true, useDefaults: true });
     const valid = ajv.validate(schema, input);
-    if (!valid) throw new Error(`Invalid input:\n${ajv.errors}`);
+    if (!valid) throw new Error(`Invalid input:\n${JSON.stringify(ajv.errors, null, 2)}`);
 };

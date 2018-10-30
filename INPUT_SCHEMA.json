@@ -13,6 +13,12 @@
             ],
             "editor": "requestListSources"
         },
+        "pseudoUrls": {
+            "title": "Pseudo-URLs",
+            "type": "array",
+            "description": "Pseudo-URLs matching requests you want to enqueue",
+            "editor": "pseudoUrls"
+        },
         "pageFunction": {
             "title": "Page function",
             "type": "string",
@@ -52,15 +58,26 @@
             "type": "integer",
             "description": "Maximum number of pages that the crawler will open.",
             "minimum": 0,
-            "default": 0,
             "unit": "Pages"
         },
-        "pseudoUrls": {
-            "title": "Pseudo-URLs",
-            "type": "array",
-            "description": "Pseudo-URLs matching requests you want to enqueue",
-            "editor": "pseudoUrls"
+        "minConcurrency": {
+            "title": "Minimum number of parallel scraping jobs.",
+            "type": "integer",
+            "description": "Maximum number of pages that the crawler will open.",
+            "minimum": 1,
+            "default": 5,
+            "maximum": 20,
+            "unit": "Parallels"
+        },
+        "maxConcurrency": {
+            "title": "Maximum number of parallel scraping jobs.",
+            "type": "integer",
+            "description": "Maximum number of pages that the crawler will open.",
+            "minimum": 1,
+            "default": 25,
+            "maximum": 250,
+            "unit": "Parallels"
         }
     },
-    "required": ["startUrls", "pageFunction"]
+    "required": ["startUrls", "pageFunction", "maxPagesPerCrawl"]
 }

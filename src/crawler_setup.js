@@ -21,6 +21,8 @@ class CrawlerSetup {
             clickableElementsSelector,
             maxPagesPerCrawl,
             pseudoUrls,
+            minConcurrency,
+            maxConcurrency,
         } = input;
 
         // Validations
@@ -45,6 +47,8 @@ class CrawlerSetup {
         this.ignoreSslErrors = ignoreSslErrors;
         this.clickableElementsSelector = clickableElementsSelector;
         this.maxPagesPerCrawl = maxPagesPerCrawl;
+        this.minConcurrency = minConcurrency;
+        this.maxConcurrency = maxConcurrency;
 
         // Initialize async operations.
         this.requestList = null;
@@ -87,9 +91,15 @@ class CrawlerSetup {
             handleFailedRequestFunction: this._getHandleFailedRequestFunction(),
             // maxRequestRetries: use default,
             maxRequestsPerCrawl: this.maxPagesPerCrawl,
-            // minConcurrency: use default,
-            // maxConcurrency: use default,
-            // autoscaledPoolOptions use default,
+            autoscaledPoolOptions: {
+                minConcurrency: this.minConcurrency,
+                maxConcurrency: this.maxConcurrency,
+                systemStatusOptions: {
+                    // Cheerio does a lot of sync operations, so we need to
+                    // give it some time to do its job.
+                    maxEventLoopOverloadedRatio: 0.8,
+                },
+            },
         };
     }
 
