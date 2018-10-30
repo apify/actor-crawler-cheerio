@@ -13,38 +13,17 @@
             ],
             "editor": "requestListSources"
         },
+        "useRequestQueue": {
+            "title": "Use request queue",
+            "type": "boolean",
+            "description": "Request queue enables recursive crawling and the use of Pseudo-URLs and Clickable elements selectors.",
+            "default": false
+        },
         "pseudoUrls": {
             "title": "Pseudo-URLs",
             "type": "array",
             "description": "Pseudo-URLs matching requests you want to enqueue",
             "editor": "pseudoUrls"
-        },
-        "pageFunction": {
-            "title": "Page function",
-            "type": "string",
-            "description": "Function executed for each request",
-            "prefill": "async (context) => {\n  return context.$('title').text();\n\n}",
-            "editor": "javascript"
-        },
-        "useRequestQueue": {
-            "title": "Use request queue",
-            "type": "boolean",
-            "description": "Request queue enables recursive crawling.",
-            "default": false,
-            "groupCaption": "Options",
-            "groupDescription": "Crawler settings"
-        },
-        "verboseLog": {
-            "title": "Verbose log",
-            "type": "boolean",
-            "description": "Debug messages will be included in the log.",
-            "default": false
-        },
-        "ignoreSslErrors": {
-            "title": "Ignore SSL errors?",
-            "type": "boolean",
-            "description": "Crawler will ignore SSL certificate errors.",
-            "default": false
         },
         "clickableElementsSelector": {
             "title": "Clickable elements selector",
@@ -53,30 +32,75 @@
             "editor": "textfield",
             "default": "a"
         },
+        "pageFunction": {
+            "title": "Page function",
+            "type": "string",
+            "description": "Function executed for each request",
+            "prefill": "async (context) => {\n  return context.$('title').text();\n\n}",
+            "editor": "javascript"
+        },
+        "proxyConfiguration": {
+          "title": "Proxy configuration",
+          "type": "object",
+          "description": "Choose to use no proxy, Apify Proxy, or provide custom proxy URLs.",
+          "prefill": { "useApifyProxy": false },
+          "editor": "proxy"
+        },
+        "verboseLog": {
+            "title": "Verbose log",
+            "type": "boolean",
+            "description": "Debug messages will be included in the log.",
+            "default": false,
+            "groupCaption": "Options",
+            "groupDescription": "Crawler settings"
+        },
+        "ignoreSslErrors": {
+            "title": "Ignore SSL errors?",
+            "type": "boolean",
+            "description": "Crawler will ignore SSL certificate errors.",
+            "default": false
+        },
         "maxPagesPerCrawl": {
-            "title": "Maximum number of pages to crawl",
+            "title": "Max pages per crawl",
             "type": "integer",
             "description": "Maximum number of pages that the crawler will open.",
             "minimum": 0,
-            "unit": "Pages"
+            "unit": "pages"
+        },
+        "maxResultsPerCrawl": {
+          "title": "Max result records",
+          "type": "integer",
+          "description": "Maximum number of results that will be saved to dataset. The crawler will terminate afterwards.",
+          "minimum": 0,
+          "default": 0,
+          "unit": "results"
         },
         "minConcurrency": {
-            "title": "Minimum number of parallel scraping jobs.",
+            "title": "Min parallel crawling jobs",
             "type": "integer",
             "description": "Maximum number of pages that the crawler will open.",
             "minimum": 1,
             "default": 5,
             "maximum": 20,
-            "unit": "Parallels"
+            "unit": "parallels"
         },
         "maxConcurrency": {
-            "title": "Maximum number of parallel scraping jobs.",
+            "title": "Max parallel crawling jobs",
             "type": "integer",
             "description": "Maximum number of pages that the crawler will open.",
             "minimum": 1,
             "default": 25,
             "maximum": 250,
-            "unit": "Parallels"
+            "unit": "parallels"
+        },
+        "pageLoadTimeoutSecs": {
+            "title": "Page load timeout",
+            "type": "integer",
+            "description": "Maximum time the crawler will allow a web page to load in seconds.",
+            "minimum": 1,
+            "default": 20,
+            "maximum": 360,
+            "unit": "secs"
         }
     },
     "required": ["startUrls", "pageFunction", "maxPagesPerCrawl"]

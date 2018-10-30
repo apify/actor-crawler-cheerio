@@ -26,6 +26,7 @@ Apify.main(async () => {
 
     log.info('Async tasks completed. Starting the crawl.');
     const crawler = new Apify.CheerioCrawler(options);
+    setup.crawler = crawler;
 
     await crawler.run();
     log.info('Crawler finished.');

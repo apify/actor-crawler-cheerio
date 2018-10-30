@@ -15,14 +15,17 @@ class CrawlerSetup {
         const {
             startUrls,
             pageFunction,
+            proxyConfiguration,
             useRequestQueue,
             verboseLog,
             ignoreSslErrors,
             clickableElementsSelector,
             maxPagesPerCrawl,
+            maxResultsPerCrawl,
             pseudoUrls,
             minConcurrency,
             maxConcurrency,
+            pageLoadTimeoutSecs,
         } = input;
 
         // Validations
@@ -41,16 +44,20 @@ class CrawlerSetup {
         // Pseudo URLs must be constructed first.
         this.pseudoUrls = pseudoUrls.map(item => new Apify.PseudoUrl(item.purl, _.omit(item, 'purl')));
 
-        // Simple properties
+        // Properties
         this.startUrls = startUrls;
+        this.proxyConfiguration = proxyConfiguration;
         this.useRequestQueue = useRequestQueue;
         this.ignoreSslErrors = ignoreSslErrors;
         this.clickableElementsSelector = clickableElementsSelector;
         this.maxPagesPerCrawl = maxPagesPerCrawl;
+        this.maxResultsPerCrawl = maxResultsPerCrawl;
         this.minConcurrency = minConcurrency;
         this.maxConcurrency = maxConcurrency;
+        this.pageLoadTimeoutSecs = pageLoadTimeoutSecs;
 
         // Initialize async operations.
+        this.crawler = null;
         this.requestList = null;
         this.requestQueue = null;
         this.dataset = null;
@@ -81,12 +88,13 @@ class CrawlerSetup {
         await this.initPromise;
 
         return {
+            ...this.proxyConfiguration,
             handlePageFunction: this._getHandlePageFunction(env),
             requestList: this.requestList,
             requestQueue: this.requestQueue,
             // requestFunction: use default,
             // handlePageTimeoutSecs: use default,
-            // requestTimeoutSecs: use default,
+            requestTimeoutSecs: this.pageLoadTimeoutSecs,
             ignoreSslErrors: this.ignoreSslErrors,
             handleFailedRequestFunction: this._getHandleFailedRequestFunction(),
             // maxRequestRetries: use default,
@@ -127,6 +135,10 @@ class CrawlerSetup {
      * @returns {Function}
      */
     _getHandlePageFunction({ actorId, runId }) {
+        /**
+         * State tracks the crawler metadata that are exposed
+         * to the user via context.
+         */
         const state = {
             skipLinks: false,
             skipOutput: false,
@@ -142,7 +154,20 @@ class CrawlerSetup {
             enqueuePage,
         } = createContextFunctions(this, state);
 
+        /**
+         * This is the actual `handlePageFunction()` that gets passed
+         * to `CheerioCrawler` constructor.
+         */
         return async ({ $, html, request, response }) => {
+            // PRE-PROCESSING
+
+            // Abort the crawler if the maximum number of results was reached.
+            if (this.maxResultsPerCrawl && this.pagesOutputted >= this.maxResultsPerCrawl) {
+                log.info(`User set limit of ${this.maxResultsPerCrawl} results was reached. Finishing the crawl.`);
+                await this.crawler.abort();
+            }
+
+            // USER FUNCTION INVOCATION
             const pageFunctionResult = await this.pageFunction({
                 actorId,
                 runId,
@@ -161,6 +186,8 @@ class CrawlerSetup {
                 enqueuePage,
             });
 
+            // POST-PROCESSING
+
             // If the user invoked the `willFinishLater()` context function,
             // this prevents the internal `handlePageFunction` from returning until
             // the user calls the `finish()` context function.
@@ -172,7 +199,7 @@ class CrawlerSetup {
             // Enqueue more links if Pseudo URLs and a clickable selector are available,
             // unless the user invoked the `skipLinks()` context function.
             if (!state.skipLinks && this.pseudoUrls.length && this.clickableElementsSelector) {
-                const requestOperationInfoArr = await tools.enqueueLinks(
+                await tools.enqueueLinks(
                     $,
                     this.clickableElementsSelector,
                     this.pseudoUrls,
@@ -180,8 +207,7 @@ class CrawlerSetup {
                     request.url,
                 );
                 // Save the ids of enqueued requests to the parent requests for easier tracking.
-                // TODO perhaps move this away from userData to prevent polluting users namespace
-                request.userData.childRequests = requestOperationInfoArr.map(op => op.requestId);
+                // request.userData.childRequests = requestOperationInfoArr.map(op => op.requestId);
             }
 
             // Save the `pageFunction`s result to the default dataset unless
