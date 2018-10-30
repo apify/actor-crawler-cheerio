@@ -46,9 +46,9 @@ describe('tools.requestToRpOpts()', () => {
 });
 
 describe('tools.evalCheerioFunctionOrThrow()', () => {
-    //const test = (...args, result) =>
+    // const test = (...args, result) =>
     //
-    //it('should work without body', () => {
+    // it('should work without body', () => {
     //    expect(tools.evalCheerioFunctionOrThrow('(a, b) => c')(1, 2))
-    //});
+    // });
 });

@@ -1,5 +1,4 @@
 const Apify = require('apify');
-const _ = require('underscore');
 const CrawlerSetup = require('./crawler_setup');
 
 const { utils: { log } } = Apify;
