@@ -30,7 +30,7 @@
             "type": "string",
             "description": "CSS selector matching elements to be clicked.",
             "editor": "textfield",
-            "default": "a"
+            "prefill": "a"
         },
         "pageFunction": {
             "title": "Page function",
@@ -101,6 +101,13 @@
             "default": 20,
             "maximum": 360,
             "unit": "secs"
+        },
+        "customData": {
+            "title": "Custom data",
+            "type": "object",
+            "description": "This object will be available on pageFunction's context as customData.",
+            "default": {},
+            "editor": "json"
         }
     },
     "required": ["startUrls", "pageFunction", "maxPagesPerCrawl"]

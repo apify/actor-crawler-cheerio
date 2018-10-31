@@ -26,6 +26,7 @@ class CrawlerSetup {
             minConcurrency,
             maxConcurrency,
             pageLoadTimeoutSecs,
+            customData,
         } = input;
 
         // Validations
@@ -55,6 +56,7 @@ class CrawlerSetup {
         this.minConcurrency = minConcurrency;
         this.maxConcurrency = maxConcurrency;
         this.pageLoadTimeoutSecs = pageLoadTimeoutSecs;
+        this.customData = customData;
 
         // Initialize async operations.
         this.crawler = null;
@@ -76,6 +78,9 @@ class CrawlerSetup {
         this.dataset = await Apify.openDataset();
         const { itemsCount } = await this.dataset.getInfo();
         this.pagesOutputted = itemsCount || 0;
+
+        // KeyValueStore
+        this.keyValueStore = await Apify.openKeyValueStore();
     }
 
     /**
@@ -176,6 +181,8 @@ class CrawlerSetup {
                 html,
                 requestList: this.requestList,
                 requestQueue: this.requestQueue,
+                dataset: this.dataset,
+                keyValueStore: this.keyValueStore,
                 $,
                 input: this.rawInput,
                 client: Apify.client,
