@@ -1,7 +1,7 @@
 const Apify = require('apify');
 const _ = require('underscore');
 const tools = require('./tools');
-const { createContextFunctions } = require('./context_functions');
+const { getContextAndState } = require('./context');
 const { META_KEY } = require('./consts');
 
 const { utils: { log } } = Apify;
@@ -144,30 +144,11 @@ class CrawlerSetup {
      * @returns {Function}
      */
     _getHandlePageFunction({ actorId, runId }) {
-        const {
-            skipLinks,
-            skipOutput,
-            willFinishLater,
-            finish,
-            enqueuePage,
-        } = createContextFunctions(this, state);
-
         /**
          * This is the actual `handlePageFunction()` that gets passed
          * to `CheerioCrawler` constructor.
          */
         return async ({ $, html, request, response }) => {
-            /**
-             * State tracks the effects of functions that are exposed
-             * to the user via context.
-             */
-            const state = {
-                skipLinks: false,
-                skipOutput: false,
-                finishPromise: null,
-                finishResolve: null,
-            };
-
             /**
              * PRE-PROCESSING
              */
@@ -181,29 +162,13 @@ class CrawlerSetup {
                 await this.crawler.abort();
             }
 
+            // Initialize context and state.
+            const { context, state } = getContextAndState(this, { actorId, runId, request, response, html, $ });
+
             /**
              * USER FUNCTION INVOCATION
              */
-            const pageFunctionResult = await this.pageFunction({
-                actorId,
-                runId,
-                request,
-                response,
-                html,
-                $,
-                customData: this.customData,
-                requestList: this.requestList,
-                requestQueue: this.requestQueue,
-                dataset: this.dataset,
-                keyValueStore: this.keyValueStore,
-                input: this.rawInput,
-                client: Apify.client,
-                skipLinks,
-                skipOutput,
-                willFinishLater,
-                finish,
-                enqueuePage,
-            });
+            const pageFunctionResult = await this.pageFunction(context);
 
             /**
              * POST-PROCESSING
