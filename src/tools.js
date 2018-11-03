@@ -1,7 +1,10 @@
+const Apify = require('apify');
 const _ = require('underscore');
 const { resolve } = require('url');
 const vm = require('vm');
 const Ajv = require('ajv');
+
+const { META_KEY } = require('./consts');
 const schema = require('../INPUT_SCHEMA.json');
 
 exports.requestToRpOpts = (request) => {
@@ -25,7 +28,7 @@ exports.evalPageFunctionOrThrow = (funcString) => {
     return func;
 };
 
-exports.enqueueLinks = async ($, selector, purls, requestQueue, parentUrl) => {
+exports.enqueueLinks = async ($, selector, purls, requestQueue, parentRequest) => {
     const requests = [];
 
     $(selector).each((index, el) => {
@@ -34,7 +37,7 @@ exports.enqueueLinks = async ($, selector, purls, requestQueue, parentUrl) => {
 
         const url = pathOrUrl.includes('://')
             ? pathOrUrl
-            : resolve(parentUrl, pathOrUrl);
+            : resolve(parentRequest.url, pathOrUrl);
 
         purls
             .filter(purl => purl.matches(url))
@@ -43,7 +46,21 @@ exports.enqueueLinks = async ($, selector, purls, requestQueue, parentUrl) => {
 
     const requestOperationInfos = [];
     for (const request of requests) {
-        requestOperationInfos.push(await requestQueue.addRequest(request));
+        // When parent has no depth, it must be the first one.
+        const parentDepth = parentRequest.userData[META_KEY].depth || 0;
+
+        // Since constructor does not support custom parameters,
+        // we need to attach the metadata later.
+        const newRequest = new Apify.Request(request);
+        newRequest.userData[META_KEY] = {
+            depth: parentDepth + 1,
+            parent: parentRequest.id,
+            children: [],
+        };
+        // Enqueue the new request.
+        requestOperationInfos.push(await requestQueue.addRequest(newRequest));
+        // Add it to its parent's list.
+        parentRequest.userData[META_KEY].children[newRequest.id] = 1;
     }
     return requestOperationInfos;
 };
@@ -62,4 +79,17 @@ exports.checkInputOrThrow = (input) => {
     const ajv = new Ajv({ allErrors: true, useDefaults: true });
     const valid = ajv.validate(schema, input);
     if (!valid) throw new Error(`Invalid input:\n${JSON.stringify(ajv.errors, null, 2)}`);
+};
+
+exports.ensureMetaData = ({ userData }) => {
+    const metadata = userData[META_KEY];
+    if (!metadata) {
+        userData[META_KEY] = {
+            depth: 0,
+            parent: null,
+            children: {},
+        };
+        return;
+    }
+    if (typeof metadata !== 'object') throw new Error(`Request ${request.id} contains invalid metadata value.`);
 };

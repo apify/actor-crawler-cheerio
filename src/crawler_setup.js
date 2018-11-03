@@ -2,8 +2,10 @@ const Apify = require('apify');
 const _ = require('underscore');
 const tools = require('./tools');
 const { createContextFunctions } = require('./context_functions');
+const { META_KEY } = require('./consts');
 
 const { utils: { log } } = Apify;
+
 
 class CrawlerSetup {
     constructor(input) {
@@ -19,9 +21,10 @@ class CrawlerSetup {
             useRequestQueue,
             verboseLog,
             ignoreSslErrors,
-            clickableElementsSelector,
+            linkSelector,
             maxPagesPerCrawl,
             maxResultsPerCrawl,
+            maxCrawlingDepth,
             pseudoUrls,
             minConcurrency,
             maxConcurrency,
@@ -50,9 +53,10 @@ class CrawlerSetup {
         this.proxyConfiguration = proxyConfiguration;
         this.useRequestQueue = useRequestQueue;
         this.ignoreSslErrors = ignoreSslErrors;
-        this.clickableElementsSelector = clickableElementsSelector;
+        this.linkSelector = linkSelector;
         this.maxPagesPerCrawl = maxPagesPerCrawl;
         this.maxResultsPerCrawl = maxResultsPerCrawl;
+        this.maxCrawlingDepth = maxCrawlingDepth;
         this.minConcurrency = minConcurrency;
         this.maxConcurrency = maxConcurrency;
         this.pageLoadTimeoutSecs = pageLoadTimeoutSecs;
@@ -166,6 +170,10 @@ class CrawlerSetup {
         return async ({ $, html, request, response }) => {
             // PRE-PROCESSING
 
+            // Make sure that an object containing internal metadata
+            // is present on every request.
+            tools.ensureMetaData(request);
+
             // Abort the crawler if the maximum number of results was reached.
             if (this.maxResultsPerCrawl && this.pagesOutputted >= this.maxResultsPerCrawl) {
                 log.info(`User set limit of ${this.maxResultsPerCrawl} results was reached. Finishing the crawl.`);
@@ -179,11 +187,12 @@ class CrawlerSetup {
                 request,
                 response,
                 html,
+                $,
+                customData: this.customData,
                 requestList: this.requestList,
                 requestQueue: this.requestQueue,
                 dataset: this.dataset,
                 keyValueStore: this.keyValueStore,
-                $,
                 input: this.rawInput,
                 client: Apify.client,
                 skipLinks,
@@ -203,24 +212,38 @@ class CrawlerSetup {
                 await state.finishPromise;
             }
 
+
+            // Ensure max crawling depth will not be exceeded.
+            const currentDepth = request.userData[META_KEY].depth;
+            const hasReachedMaxDepth = this.maxCrawlingDepth && currentDepth >= this.maxCrawlingDepth;
+            if (hasReachedMaxDepth) {
+                log.debug(`Request ${request.id} reached the maximum crawling depth of ${currentDepth}.`);
+            }
+
             // Enqueue more links if Pseudo URLs and a clickable selector are available,
             // unless the user invoked the `skipLinks()` context function.
-            if (!state.skipLinks && this.pseudoUrls.length && this.clickableElementsSelector) {
+            const canEnqueue = !state.skipLinks && this.pseudoUrls.length && this.linkSelector;
+            if (canEnqueue && !hasReachedMaxDepth) {
                 await tools.enqueueLinks(
                     $,
-                    this.clickableElementsSelector,
+                    this.linkSelector,
                     this.pseudoUrls,
                     this.requestQueue,
-                    request.url,
+                    request,
                 );
-                // Save the ids of enqueued requests to the parent requests for easier tracking.
-                // request.userData.childRequests = requestOperationInfoArr.map(op => op.requestId);
             }
 
             // Save the `pageFunction`s result to the default dataset unless
             // the `skipOutput()` context function was invoked.
             if (!state.skipOutput) {
-                await Apify.pushData(Object.assign({}, request, { pageFunctionResult }));
+                // Do not store metadata to dataset.
+                delete request.userData[META_KEY];
+                const result = Object.assign(
+                    {}, // Make a copy.
+                    request,
+                    { pageFunctionResult }, // Add crawling result.
+                );
+                await Apify.pushData(result);
                 this.pagesOutputted++;
             }
         };

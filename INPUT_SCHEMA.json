@@ -25,10 +25,10 @@
             "description": "Pseudo-URLs matching requests you want to enqueue",
             "editor": "pseudoUrls"
         },
-        "clickableElementsSelector": {
-            "title": "Clickable elements selector",
+        "linkSelector": {
+            "title": "Link selector",
             "type": "string",
-            "description": "CSS selector matching elements to be clicked.",
+            "description": "CSS selector matching elements with 'href' attributes that should be enqueued. To enqueue urls from an '<a href=...> tag, you would enter 'a'.",
             "editor": "textfield",
             "prefill": "a"
         },
@@ -74,6 +74,13 @@
           "minimum": 0,
           "default": 0,
           "unit": "results"
+        },
+        "maxCrawlingDepth": {
+          "title": "Max crawling depth",
+          "type": "integer",
+          "description": "Defines how many links away from the StartURLs will the crawler descend.",
+          "minimum": 0,
+          "default": 0
         },
         "minConcurrency": {
             "title": "Min parallel crawling jobs",
