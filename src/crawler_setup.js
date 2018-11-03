@@ -144,17 +144,6 @@ class CrawlerSetup {
      * @returns {Function}
      */
     _getHandlePageFunction({ actorId, runId }) {
-        /**
-         * State tracks the crawler metadata that are exposed
-         * to the user via context.
-         */
-        const state = {
-            skipLinks: false,
-            skipOutput: false,
-            finishPromise: null,
-            finishResolve: null,
-        };
-
         const {
             skipLinks,
             skipOutput,
@@ -168,8 +157,20 @@ class CrawlerSetup {
          * to `CheerioCrawler` constructor.
          */
         return async ({ $, html, request, response }) => {
-            // PRE-PROCESSING
+            /**
+             * State tracks the effects of functions that are exposed
+             * to the user via context.
+             */
+            const state = {
+                skipLinks: false,
+                skipOutput: false,
+                finishPromise: null,
+                finishResolve: null,
+            };
 
+            /**
+             * PRE-PROCESSING
+             */
             // Make sure that an object containing internal metadata
             // is present on every request.
             tools.ensureMetaData(request);
@@ -180,7 +181,9 @@ class CrawlerSetup {
                 await this.crawler.abort();
             }
 
-            // USER FUNCTION INVOCATION
+            /**
+             * USER FUNCTION INVOCATION
+             */
             const pageFunctionResult = await this.pageFunction({
                 actorId,
                 runId,
@@ -202,8 +205,9 @@ class CrawlerSetup {
                 enqueuePage,
             });
 
-            // POST-PROCESSING
-
+            /**
+             * POST-PROCESSING
+             */
             // If the user invoked the `willFinishLater()` context function,
             // this prevents the internal `handlePageFunction` from returning until
             // the user calls the `finish()` context function.
