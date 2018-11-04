@@ -63,14 +63,14 @@
         "maxPagesPerCrawl": {
             "title": "Max pages per crawl",
             "type": "integer",
-            "description": "Maximum number of pages that the crawler will open.",
+            "description": "Maximum number of pages that the crawler will open. 0 means unlimited.",
             "minimum": 0,
             "unit": "pages"
         },
         "maxResultsPerCrawl": {
           "title": "Max result records",
           "type": "integer",
-          "description": "Maximum number of results that will be saved to dataset. The crawler will terminate afterwards.",
+          "description": "Maximum number of results that will be saved to dataset. The crawler will terminate afterwards. 0 means unlimited.",
           "minimum": 0,
           "default": 0,
           "unit": "results"
@@ -78,7 +78,7 @@
         "maxCrawlingDepth": {
           "title": "Max crawling depth",
           "type": "integer",
-          "description": "Defines how many links away from the StartURLs will the crawler descend.",
+          "description": "Defines how many links away from the StartURLs will the crawler descend. 0 means unlimited.",
           "minimum": 0,
           "default": 0
         },
