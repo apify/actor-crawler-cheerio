@@ -93,11 +93,3 @@ exports.ensureMetaData = ({ id, userData }) => {
     }
     if (typeof metadata !== 'object') throw new Error(`Request ${id} contains invalid metadata value.`);
 };
-
-/**
- * Makes sure that
- * @param result
- */
-exports.validatePageFunctionResult = (result) => {
-
-};
