@@ -1,3 +1,4 @@
+/* eslint-disable class-methods-use-this */
 const Apify = require('apify');
 const _ = require('underscore');
 const tools = require('./tools');
@@ -19,7 +20,8 @@ class CrawlerSetup {
             pageFunction,
             proxyConfiguration,
             useRequestQueue,
-            verboseLog,
+            debugLog,
+            debugResults,
             ignoreSslErrors,
             linkSelector,
             maxPagesPerCrawl,
@@ -40,8 +42,8 @@ class CrawlerSetup {
         }
 
         // Side effects
-        this.verboseLog = verboseLog;
-        if (verboseLog) log.setLevel(log.LEVELS.DEBUG);
+        this.debugLog = debugLog;
+        if (debugLog) log.setLevel(log.LEVELS.DEBUG);
 
         // Page Function needs to be evaluated.
         this.pageFunction = tools.evalPageFunctionOrThrow(pageFunction);
@@ -52,6 +54,7 @@ class CrawlerSetup {
         this.startUrls = startUrls;
         this.proxyConfiguration = proxyConfiguration;
         this.useRequestQueue = useRequestQueue;
+        this.debugResults = debugResults;
         this.ignoreSslErrors = ignoreSslErrors;
         this.linkSelector = linkSelector;
         this.maxPagesPerCrawl = maxPagesPerCrawl;
@@ -157,13 +160,11 @@ class CrawlerSetup {
             tools.ensureMetaData(request);
 
             // Abort the crawler if the maximum number of results was reached.
-            if (this.maxResultsPerCrawl && this.pagesOutputted >= this.maxResultsPerCrawl) {
-                log.info(`User set limit of ${this.maxResultsPerCrawl} results was reached. Finishing the crawl.`);
-                await this.crawler.abort();
-            }
+            const aborted = await this._handleMaxResultsPerCrawl();
+            if (aborted) return;
 
             // Initialize context and state.
-            const { context, state } = getContextAndState(this, { actorId, runId, request, response, html, $ });
+            const { context, state } = getContextAndState(this, { actorId, runId, request, response, html, $, log });
 
             /**
              * USER FUNCTION INVOCATION
@@ -176,46 +177,85 @@ class CrawlerSetup {
             // If the user invoked the `willFinishLater()` context function,
             // this prevents the internal `handlePageFunction` from returning until
             // the user calls the `finish()` context function.
-            if (state.finishPromise) {
-                log.debug('Waiting for context.finish() to be called!');
-                await state.finishPromise;
-            }
-
-
-            // Ensure max crawling depth will not be exceeded.
-            const currentDepth = request.userData[META_KEY].depth;
-            const hasReachedMaxDepth = this.maxCrawlingDepth && currentDepth >= this.maxCrawlingDepth;
-            if (hasReachedMaxDepth) {
-                log.debug(`Request ${request.id} reached the maximum crawling depth of ${currentDepth}.`);
-            }
+            await this._handleWillFinishLater(state);
 
             // Enqueue more links if Pseudo URLs and a clickable selector are available,
-            // unless the user invoked the `skipLinks()` context function.
-            const canEnqueue = !state.skipLinks && this.pseudoUrls.length && this.linkSelector;
-            if (canEnqueue && !hasReachedMaxDepth) {
-                await tools.enqueueLinks(
-                    $,
-                    this.linkSelector,
-                    this.pseudoUrls,
-                    this.requestQueue,
-                    request,
-                );
-            }
+            // unless the user invoked the `skipLinks()` context function
+            // or maxCrawlingDepth would be exceeded.
+            await this._handleLinks(state, request, $);
 
             // Save the `pageFunction`s result to the default dataset unless
             // the `skipOutput()` context function was invoked.
-            if (!state.skipOutput) {
-                // Do not store metadata to dataset.
-                delete request.userData[META_KEY];
-                const result = Object.assign(
-                    {}, // Make a copy.
-                    request,
-                    { pageFunctionResult }, // Add crawling result.
-                );
-                await Apify.pushData(result);
-                this.pagesOutputted++;
-            }
+            await this._handleResult(state, request, pageFunctionResult);
         };
+    }
+
+    async _handleMaxResultsPerCrawl() {
+        if (!this.maxResultsPerCrawl || this.pagesOutputted < this.maxResultsPerCrawl) return;
+        log.info(`User set limit of ${this.maxResultsPerCrawl} results was reached. Finishing the crawl.`);
+        await this.crawler.abort();
+        return true;
+    }
+
+    async _handleWillFinishLater(state) {
+        if (!state.finishPromise) return;
+        log.debug('Waiting for context.finish() to be called!');
+        await state.finishPromise;
+    }
+
+    async _handleLinks(state, request, $) {
+        const currentDepth = request.userData[META_KEY].depth;
+        const hasReachedMaxDepth = this.maxCrawlingDepth && currentDepth >= this.maxCrawlingDepth;
+        if (hasReachedMaxDepth) {
+            log.debug(`Request ${request.id} reached the maximum crawling depth of ${currentDepth}.`);
+            return;
+        }
+        const canEnqueue = !state.skipLinks && this.pseudoUrls.length && this.linkSelector;
+        if (canEnqueue && !hasReachedMaxDepth) {
+            await tools.enqueueLinks(
+                $,
+                this.linkSelector,
+                this.pseudoUrls,
+                this.requestQueue,
+                request,
+            );
+        }
+    }
+
+    async _handleResult(state, request, pageFunctionResult) { /* eslint-disable no-underscore-dangle */
+        if (state.skipOutput) return;
+
+        // Validate the pageFunctionResult.
+        const type = typeof pageFunctionResult;
+        if (!pageFunctionResult || type !== 'object') {
+            // TODO request.skip(); after it's merged
+            throw new Error(`Page function must return Object | Array, but it returned ${type}.`);
+        }
+
+        // Make a copy.
+        const result = Object.assign({}, pageFunctionResult);
+
+        // Do not store metadata to dataset.
+        delete request.userData[META_KEY];
+
+        // Merge debug objects if necessary or delete
+        // user added _debug object if debugResults is false.
+        if (this.debugResults) {
+            const debugData = result._debug;
+            const debugType = typeof debugData;
+            if (!debugData) {
+                result._debug = request;
+            } else if (debugType === 'object') {
+                result._debug = Object.assign(request, debugData);
+            } else {
+                // TODO request.skip(); after it's merged
+                throw new Error(`The _debug property on Page Function's return value must be an Object. Received: ${debugType}`);
+            }
+        } else {
+            delete result._debug;
+        }
+        await Apify.pushData(result);
+        this.pagesOutputted++;
     }
 }
 

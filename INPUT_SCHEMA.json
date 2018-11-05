@@ -36,7 +36,7 @@
             "title": "Page function",
             "type": "string",
             "description": "Function executed for each request",
-            "prefill": "async (context) => {\n  return context.$('title').text();\n\n}",
+            "prefill": "async ({ $, request }) => {\n    const title = $('title').text();\n    console.log(`Title of ${request.url}: ${title}`);\n    return { title };\n}",
             "editor": "javascript"
         },
         "proxyConfiguration": {
@@ -46,13 +46,20 @@
           "prefill": { "useApifyProxy": false },
           "editor": "proxy"
         },
-        "verboseLog": {
-            "title": "Verbose log",
+        "debugLog": {
+            "title": "Debug log",
             "type": "boolean",
-            "description": "Debug messages will be included in the log.",
+            "description": "Debug messages will be included in the log. Use `context.log.debug('message')` to log your own debug messages.",
             "default": false,
             "groupCaption": "Options",
             "groupDescription": "Crawler settings"
+        },
+        "debugResults": {
+            "title": "Debug results",
+            "type": "boolean",
+            "description": "Debug information such as `url` or `errorMessages` will be included in the crawler's results for each page.",
+            "default": false,
+            "groupCaption": "Options"
         },
         "ignoreSslErrors": {
             "title": "Ignore SSL errors?",

@@ -44,6 +44,7 @@ const context = {
     keyValueStore, // Reference to the run's default Apify.KeyValueStore.
     input, // Unaltered original input as parsed from the UI.
     client, // Reference to the an instance of the Apify.client.
+    log, // Reference to Apify.utils.log
     
     // Utility functions that simplify some common tasks.
     // See https://www.apify.com/docs/crawler#pageFunction for docs.

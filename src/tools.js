@@ -81,7 +81,7 @@ exports.checkInputOrThrow = (input) => {
     if (!valid) throw new Error(`Invalid input:\n${JSON.stringify(ajv.errors, null, 2)}`);
 };
 
-exports.ensureMetaData = ({ userData }) => {
+exports.ensureMetaData = ({ id, userData }) => {
     const metadata = userData[META_KEY];
     if (!metadata) {
         userData[META_KEY] = {
@@ -91,5 +91,13 @@ exports.ensureMetaData = ({ userData }) => {
         };
         return;
     }
-    if (typeof metadata !== 'object') throw new Error(`Request ${request.id} contains invalid metadata value.`);
+    if (typeof metadata !== 'object') throw new Error(`Request ${id} contains invalid metadata value.`);
+};
+
+/**
+ * Makes sure that
+ * @param result
+ */
+exports.validatePageFunctionResult = (result) => {
+
 };
