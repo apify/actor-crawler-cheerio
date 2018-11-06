@@ -93,3 +93,27 @@ exports.ensureMetaData = ({ id, userData }) => {
     }
     if (typeof metadata !== 'object') throw new Error(`Request ${id} contains invalid metadata value.`);
 };
+
+exports.createDatasetPayload = (pageFunctionResult, request, error) => {
+    // Null and undefined do not prevent the payload
+    // from being saved to dataset. It will just contain
+    // the relevant metadata.
+    let result = pageFunctionResult || {};
+
+    // Validate the result.
+    const type = typeof result;
+    if (type !== 'object') {
+        throw new Error(`Page function must return Object | Object[], but it returned ${type}.`);
+    }
+
+    // Metadata need to be appended to each item
+    // to match results with dataset "lines".
+    if (!Array.isArray(result)) result = [result];
+    const meta = {
+        '#error': !!error,
+        '#debug': _.pick(request, ['url', 'method', 'retryCount', 'errorMessages']),
+    };
+    meta['#debug'].requestId = request.id;
+
+    return result.map(item => Object.assign({}, item, meta));
+};

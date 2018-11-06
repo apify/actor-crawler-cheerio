@@ -21,7 +21,6 @@ class CrawlerSetup {
             proxyConfiguration,
             useRequestQueue,
             debugLog,
-            debugResults,
             ignoreSslErrors,
             linkSelector,
             maxPagesPerCrawl,
@@ -54,7 +53,6 @@ class CrawlerSetup {
         this.startUrls = startUrls;
         this.proxyConfiguration = proxyConfiguration;
         this.useRequestQueue = useRequestQueue;
-        this.debugResults = debugResults;
         this.ignoreSslErrors = ignoreSslErrors;
         this.linkSelector = linkSelector;
         this.maxPagesPerCrawl = maxPagesPerCrawl;
@@ -224,37 +222,8 @@ class CrawlerSetup {
 
     async _handleResult(state, request, pageFunctionResult) { /* eslint-disable no-underscore-dangle */
         if (state.skipOutput) return;
-
-        // Validate the pageFunctionResult.
-        const type = typeof pageFunctionResult;
-        if (!pageFunctionResult || type !== 'object') {
-            // TODO request.skip(); after it's merged
-            throw new Error(`Page function must return Object | Array, but it returned ${type}.`);
-        }
-
-        // Make a copy.
-        const result = Object.assign({}, pageFunctionResult);
-
-        // Do not store metadata to dataset.
-        delete request.userData[META_KEY];
-
-        // Merge debug objects if necessary or delete
-        // user added _debug object if debugResults is false.
-        if (this.debugResults) {
-            const debugData = result._debug;
-            const debugType = typeof debugData;
-            if (!debugData) {
-                result._debug = request;
-            } else if (debugType === 'object') {
-                result._debug = Object.assign(request, debugData);
-            } else {
-                // TODO request.skip(); after it's merged
-                throw new Error(`The _debug property on Page Function's return value must be an Object. Received: ${debugType}`);
-            }
-        } else {
-            delete result._debug;
-        }
-        await Apify.pushData(result);
+        const payload = tools.createDatasetPayload(pageFunctionResult, request);
+        await Apify.pushData(payload);
         this.pagesOutputted++;
     }
 }

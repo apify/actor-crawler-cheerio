@@ -61,22 +61,22 @@ const context = {
 Ouput is a dataset containing extracted data for each scraped page.
 
 ### Dataset
-For each of the scraped URLs, the dataset contains an object with results.
+For each of the scraped URLs, the dataset contains an object with results and some metadata.
 If you were scraping the HTML `<title>` of [IANA](https://www.iana.org/) it would look like this:
 
 ```json
 {
-  "id": "e2Hd517QWfF4tVh",
-  "url": "https://www.iana.org/",
-  "uniqueKey": "https://www.iana.org",
-  "method": "GET",
-  "payload": null,
-  "retryCount": 0,
-  "errorMessages": null,
-  "headers": {},
-  "userData": {},
-  "ignoreErrors": false,
-  "handledAt": null,
-  "pageFunctionResult": "Internet Assigned Numbers Authority"
+  "title": "Internet Assigned Numbers Authority",
+  "#error": false,
+  "#debug": {
+    "url": "https://www.iana.org/",
+    "method": "GET",
+    "retryCount": 0,
+    "errorMessages": null,
+    "requestId": "e2Hd517QWfF4tVh"
+  }
 }
 ```
+
+The metadata are prefixed with a `#` and you may easily remove them from the results in the App or API
+by selecting the **simplified** version.
