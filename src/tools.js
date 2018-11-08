@@ -94,7 +94,22 @@ exports.ensureMetaData = ({ id, userData }) => {
     if (typeof metadata !== 'object') throw new Error(`Request ${id} contains invalid metadata value.`);
 };
 
-exports.createDatasetPayload = (pageFunctionResult, request, error) => {
+/**
+ * Merges the result of the page function, that may be a single object
+ * or an array objects, with request metadata and a flag, whether
+ * an error occured. This would typically be used after the page
+ * had been retried and the handleFailedRequestFunction was called.
+ *
+ * If an Object[] is returned from the page function, each of the objects
+ * will have the metadata appended for consistency, since the dataset
+ * will flatten the results.
+ *
+ * @param {Request} request
+ * @param {Object|Object[]} pageFunctionResult
+ * @param {Boolean} [isError]
+ * @returns {Object[]}
+ */
+exports.createDatasetPayload = (request, pageFunctionResult, isError = false) => {
     // Null and undefined do not prevent the payload
     // from being saved to dataset. It will just contain
     // the relevant metadata.
@@ -110,7 +125,7 @@ exports.createDatasetPayload = (pageFunctionResult, request, error) => {
     // to match results with dataset "lines".
     if (!Array.isArray(result)) result = [result];
     const meta = {
-        '#error': !!error,
+        '#error': isError,
         '#debug': _.pick(request, ['url', 'method', 'retryCount', 'errorMessages']),
     };
     meta['#debug'].requestId = request.id;

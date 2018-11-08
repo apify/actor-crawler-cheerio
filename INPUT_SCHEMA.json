@@ -60,6 +60,14 @@
             "description": "Crawler will ignore SSL certificate errors.",
             "default": false
         },
+        "maxRequestRetries": {
+            "title": "Max request retries",
+            "type": "integer",
+            "description": "Maximum number of times the request for the page will be retried in case of an error. Setting it to 0 means that the request will be attempted once and will not be retried if it fails.",
+            "minimum": 0,
+            "default": 3,
+            "unit": "retries"
+        },
         "maxPagesPerCrawl": {
             "title": "Max pages per crawl",
             "type": "integer",

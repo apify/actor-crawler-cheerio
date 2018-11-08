@@ -23,6 +23,7 @@ class CrawlerSetup {
             debugLog,
             ignoreSslErrors,
             linkSelector,
+            maxRequestRetries,
             maxPagesPerCrawl,
             maxResultsPerCrawl,
             maxCrawlingDepth,
@@ -55,6 +56,7 @@ class CrawlerSetup {
         this.useRequestQueue = useRequestQueue;
         this.ignoreSslErrors = ignoreSslErrors;
         this.linkSelector = linkSelector;
+        this.maxRequestRetries = maxRequestRetries;
         this.maxPagesPerCrawl = maxPagesPerCrawl;
         this.maxResultsPerCrawl = maxResultsPerCrawl;
         this.maxCrawlingDepth = maxCrawlingDepth;
@@ -107,7 +109,7 @@ class CrawlerSetup {
             requestTimeoutSecs: this.pageLoadTimeoutSecs,
             ignoreSslErrors: this.ignoreSslErrors,
             handleFailedRequestFunction: this._getHandleFailedRequestFunction(),
-            // maxRequestRetries: use default,
+            maxRequestRetries: this.maxRequestRetries,
             maxRequestsPerCrawl: this.maxPagesPerCrawl,
             autoscaledPoolOptions: {
                 minConcurrency: this.minConcurrency,
@@ -123,8 +125,8 @@ class CrawlerSetup {
 
     _getHandleFailedRequestFunction() { // eslint-disable-line class-methods-use-this
         return async ({ request }) => {
-            log.error(`Request ${request.id} failed.`);
-            return Apify.pushData(request);
+            log.error(`Request ${request.id} failed ${this.maxRequestRetries + 1} times. Marking as failed.`);
+            return this._handleResult(request, null, true);
         };
     }
 
@@ -184,7 +186,8 @@ class CrawlerSetup {
 
             // Save the `pageFunction`s result to the default dataset unless
             // the `skipOutput()` context function was invoked.
-            await this._handleResult(state, request, pageFunctionResult);
+            if (state.skipOutput) return;
+            await this._handleResult(request, pageFunctionResult);
         };
     }
 
@@ -220,9 +223,8 @@ class CrawlerSetup {
         }
     }
 
-    async _handleResult(state, request, pageFunctionResult) { /* eslint-disable no-underscore-dangle */
-        if (state.skipOutput) return;
-        const payload = tools.createDatasetPayload(pageFunctionResult, request);
+    async _handleResult(request, pageFunctionResult) {
+        const payload = tools.createDatasetPayload(request, pageFunctionResult);
         await Apify.pushData(payload);
         this.pagesOutputted++;
     }
