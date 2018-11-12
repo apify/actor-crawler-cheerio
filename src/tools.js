@@ -54,13 +54,13 @@ exports.enqueueLinks = async ($, selector, purls, requestQueue, parentRequest) =
         const newRequest = new Apify.Request(request);
         newRequest.userData[META_KEY] = {
             depth: parentDepth + 1,
-            parent: parentRequest.id,
-            children: [],
+            parentRequestId: parentRequest.id,
+            childRequestIds: {},
         };
         // Enqueue the new request.
         requestOperationInfos.push(await requestQueue.addRequest(newRequest));
         // Add it to its parent's list.
-        parentRequest.userData[META_KEY].children[newRequest.id] = 1;
+        parentRequest.userData[META_KEY].childRequestIds[newRequest.id] = 1;
     }
     return requestOperationInfos;
 };
@@ -86,8 +86,8 @@ exports.ensureMetaData = ({ id, userData }) => {
     if (!metadata) {
         userData[META_KEY] = {
             depth: 0,
-            parent: null,
-            children: {},
+            parentRequestId: null,
+            childRequestIds: {},
         };
         return;
     }

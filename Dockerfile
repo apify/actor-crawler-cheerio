@@ -1,8 +1,7 @@
 FROM apify/actor-node-basic
 
 # Copy source code
-COPY main.js INPUT_SCHEMA.json README.md package* ./
-COPY src ./src
+COPY . ./
 
 # Install default dependencies, print versions of everything
 RUN npm --quiet set progress=false \

@@ -17,7 +17,7 @@ const state = Symbol('request-state');
  * and manipulating them.
  */
 class Context {
-    constructor(crawlerSetup, environment) {
+    constructor(crawlerSetup, pageFunctionArguments) {
         // Private
         this[setup] = crawlerSetup;
         this[state] = {
@@ -33,9 +33,12 @@ class Context {
         this.requestQueue = crawlerSetup.requestQueue;
         this.dataset = crawlerSetup.dataset;
         this.keyValueStore = crawlerSetup.keyValueStore;
-        this.input = crawlerSetup.rawInput;
         this.client = Apify.client;
-        Object.assign(this, environment);
+
+        this.input = JSON.parse(crawlerSetup.rawInput);
+        this.env = Object.assign({}, crawlerSetup.env);
+
+        Object.assign(this, pageFunctionArguments);
     }
 
     skipLinks() {
@@ -80,7 +83,7 @@ class Context {
  * @param {Object} environment
  * @returns {{{context: Context, state: Object}}}
  */
-exports.getContextAndState = (crawlerSetup, environment) => {
+exports.createContext = (crawlerSetup, environment) => {
     const context = new Context(crawlerSetup, environment);
     return {
         context,

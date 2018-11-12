@@ -2,68 +2,67 @@
 const Apify = require('apify');
 const _ = require('underscore');
 const tools = require('./tools');
-const { getContextAndState } = require('./context');
-const { META_KEY } = require('./consts');
+const { createContext } = require('./context');
+const { META_KEY, MAX_EVENT_LOOP_OVERLOADED_RATIO } = require('./consts');
 
 const { utils: { log } } = Apify;
 
 
+/**
+ * Replicates the INPUT_SCHEMA with JavaScript types for quick reference
+ * and IDE type check integration.
+ *
+ * @typedef {Number} Input
+ * @property {Object[]} startUrls
+ * @property {boolean} useRequestQueue
+ * @property {Object[]} pseudoUrls
+ * @property {string} linkSelector
+ * @property {string} pageFunction
+ * @property {Object} proxyConfiguration
+ * @property {boolean} debugLog
+ * @property {boolean} ignoreSslErrors
+ * @property {number} maxRequestRetries
+ * @property {number} maxPagesPerCrawl
+ * @property {number} maxResultsPerCrawl
+ * @property {number} maxCrawlingDepth
+ * @property {number} minConcurrency
+ * @property {number} maxConcurrency
+ * @property {number} pageLoadTimeoutSecs
+ * @property {Object} customData
+ */
+
+/**
+ * Holds all the information necessary for constructing a crawler
+ * instance and creating a context for a pageFunction invocation.
+ */
 class CrawlerSetup {
-    constructor(input) {
+    constructor(input, environment) {
         // Validate INPUT if not running on Apify Cloud Platform.
         if (!Apify.isAtHome()) tools.checkInputOrThrow(input);
 
-        this.rawInput = Object.assign({}, input);
+        // Keep this as string to be immutable.
+        this.rawInput = JSON.stringify(input);
 
-        const {
-            startUrls,
-            pageFunction,
-            proxyConfiguration,
-            useRequestQueue,
-            debugLog,
-            ignoreSslErrors,
-            linkSelector,
-            maxRequestRetries,
-            maxPagesPerCrawl,
-            maxResultsPerCrawl,
-            maxCrawlingDepth,
-            pseudoUrls,
-            minConcurrency,
-            maxConcurrency,
-            pageLoadTimeoutSecs,
-            customData,
-        } = input;
+        /**
+         * @type {Input}
+         */
+        this.input = JSON.parse(this.rawInput);
+        this.env = Object.assign({}, environment);
 
         // Validations
-        if (pseudoUrls.length && !useRequestQueue) {
+        if (this.input.pseudoUrls.length && !this.input.useRequestQueue) {
             throw new Error('Cannot enqueue links using Pseudo URLs without using a Request Queue. ' +
                 'Either select the "Use Request Queue" option to enable Request Queue or ' +
                 'remove your Pseudo URLs.');
         }
 
         // Side effects
-        this.debugLog = debugLog;
-        if (debugLog) log.setLevel(log.LEVELS.DEBUG);
+        if (this.input.debugLog) log.setLevel(log.LEVELS.DEBUG);
 
         // Page Function needs to be evaluated.
-        this.pageFunction = tools.evalPageFunctionOrThrow(pageFunction);
+        this.evaledPageFunction = tools.evalPageFunctionOrThrow(this.input.pageFunction);
         // Pseudo URLs must be constructed first.
-        this.pseudoUrls = pseudoUrls.map(item => new Apify.PseudoUrl(item.purl, _.omit(item, 'purl')));
-
-        // Properties
-        this.startUrls = startUrls;
-        this.proxyConfiguration = proxyConfiguration;
-        this.useRequestQueue = useRequestQueue;
-        this.ignoreSslErrors = ignoreSslErrors;
-        this.linkSelector = linkSelector;
-        this.maxRequestRetries = maxRequestRetries;
-        this.maxPagesPerCrawl = maxPagesPerCrawl;
-        this.maxResultsPerCrawl = maxResultsPerCrawl;
-        this.maxCrawlingDepth = maxCrawlingDepth;
-        this.minConcurrency = minConcurrency;
-        this.maxConcurrency = maxConcurrency;
-        this.pageLoadTimeoutSecs = pageLoadTimeoutSecs;
-        this.customData = customData;
+        this.pseudoUrlInstances = this.input.pseudoUrls.map(item => new Apify.PseudoUrl(item.purl, _.omit(item, 'purl')));
 
         // Initialize async operations.
         this.crawler = null;
@@ -75,11 +74,11 @@ class CrawlerSetup {
 
     async _initializeAsync() {
         // RequestList
-        this.requestList = new Apify.RequestList({ sources: this.startUrls });
+        this.requestList = new Apify.RequestList({ sources: this.input.startUrls });
         await this.requestList.initialize();
 
         // RequestQueue if selected
-        if (this.useRequestQueue) this.requestQueue = await Apify.openRequestQueue();
+        if (this.input.useRequestQueue) this.requestQueue = await Apify.openRequestQueue();
 
         // Dataset
         this.dataset = await Apify.openDataset();
@@ -91,43 +90,44 @@ class CrawlerSetup {
     }
 
     /**
-     * Resolves to an options object that may be directly passed to a `CheerioCrawler`
-     * constructor.
-     * @param {Object} env
-     * @returns {Promise<Object>}
+     * Resolves to a CheerioCrawler instance set up with input values.
+     *
+     * @returns {Promise<CheerioCrawler>}
      */
-    async getOptions(env) {
+    async createCrawler() {
         await this.initPromise;
 
-        return {
-            ...this.proxyConfiguration,
-            handlePageFunction: this._getHandlePageFunction(env),
+        const options = {
+            ...this.input.proxyConfiguration,
+            handlePageFunction: this.handlePageFunction.bind(this),
             requestList: this.requestList,
             requestQueue: this.requestQueue,
             // requestFunction: use default,
             // handlePageTimeoutSecs: use default,
-            requestTimeoutSecs: this.pageLoadTimeoutSecs,
-            ignoreSslErrors: this.ignoreSslErrors,
-            handleFailedRequestFunction: this._getHandleFailedRequestFunction(),
-            maxRequestRetries: this.maxRequestRetries,
-            maxRequestsPerCrawl: this.maxPagesPerCrawl,
+            requestTimeoutSecs: this.input.pageLoadTimeoutSecs,
+            ignoreSslErrors: this.input.ignoreSslErrors,
+            handleFailedRequestFunction: this.handleFailedRequestFunction.bind(this),
+            maxRequestRetries: this.input.maxRequestRetries,
+            maxRequestsPerCrawl: this.input.maxPagesPerCrawl,
             autoscaledPoolOptions: {
-                minConcurrency: this.minConcurrency,
-                maxConcurrency: this.maxConcurrency,
+                minConcurrency: this.input.minConcurrency,
+                maxConcurrency: this.input.maxConcurrency,
                 systemStatusOptions: {
                     // Cheerio does a lot of sync operations, so we need to
                     // give it some time to do its job.
-                    maxEventLoopOverloadedRatio: 0.8,
+                    maxEventLoopOverloadedRatio: MAX_EVENT_LOOP_OVERLOADED_RATIO,
                 },
             },
         };
+
+        this.crawler = new Apify.CheerioCrawler(options);
+
+        return this.crawler;
     }
 
-    _getHandleFailedRequestFunction() { // eslint-disable-line class-methods-use-this
-        return async ({ request }) => {
-            log.error(`Request ${request.id} failed ${this.maxRequestRetries + 1} times. Marking as failed.`);
-            return this._handleResult(request, null, true);
-        };
+    async handleFailedRequestFunction({ request }) {
+        log.error(`Request ${request.id} failed ${this.maxRequestRetries + 1} times. Marking as failed.`);
+        return this._handleResult(request, null, true);
     }
 
     /**
@@ -146,54 +146,48 @@ class CrawlerSetup {
      * @param {Object} environment
      * @returns {Function}
      */
-    _getHandlePageFunction({ actorId, runId }) {
+    async handlePageFunction({ $, html, request, response }) {
         /**
-         * This is the actual `handlePageFunction()` that gets passed
-         * to `CheerioCrawler` constructor.
+         * PRE-PROCESSING
          */
-        return async ({ $, html, request, response }) => {
-            /**
-             * PRE-PROCESSING
-             */
-            // Make sure that an object containing internal metadata
-            // is present on every request.
-            tools.ensureMetaData(request);
+        // Make sure that an object containing internal metadata
+        // is present on every request.
+        tools.ensureMetaData(request);
 
-            // Abort the crawler if the maximum number of results was reached.
-            const aborted = await this._handleMaxResultsPerCrawl();
-            if (aborted) return;
+        // Abort the crawler if the maximum number of results was reached.
+        const aborted = await this._handleMaxResultsPerCrawl();
+        if (aborted) return;
 
-            // Initialize context and state.
-            const { context, state } = getContextAndState(this, { actorId, runId, request, response, html, $, log });
+        // Initialize context and state.
+        const { context, state } = createContext(this, { request, response, html, $ });
 
-            /**
-             * USER FUNCTION INVOCATION
-             */
-            const pageFunctionResult = await this.pageFunction(context);
+        /**
+         * USER FUNCTION INVOCATION
+         */
+        const pageFunctionResult = await this.evaledPageFunction(context);
 
-            /**
-             * POST-PROCESSING
-             */
-            // If the user invoked the `willFinishLater()` context function,
-            // this prevents the internal `handlePageFunction` from returning until
-            // the user calls the `finish()` context function.
-            await this._handleWillFinishLater(state);
+        /**
+         * POST-PROCESSING
+         */
+        // If the user invoked the `willFinishLater()` context function,
+        // this prevents the internal `handlePageFunction` from returning until
+        // the user calls the `finish()` context function.
+        await this._handleWillFinishLater(state);
 
-            // Enqueue more links if Pseudo URLs and a clickable selector are available,
-            // unless the user invoked the `skipLinks()` context function
-            // or maxCrawlingDepth would be exceeded.
-            await this._handleLinks(state, request, $);
+        // Enqueue more links if Pseudo URLs and a clickable selector are available,
+        // unless the user invoked the `skipLinks()` context function
+        // or maxCrawlingDepth would be exceeded.
+        await this._handleLinks(state, request, $);
 
-            // Save the `pageFunction`s result to the default dataset unless
-            // the `skipOutput()` context function was invoked.
-            if (state.skipOutput) return;
-            await this._handleResult(request, pageFunctionResult);
-        };
+        // Save the `pageFunction`s result to the default dataset unless
+        // the `skipOutput()` context function was invoked.
+        if (state.skipOutput) return;
+        await this._handleResult(request, pageFunctionResult);
     }
 
     async _handleMaxResultsPerCrawl() {
-        if (!this.maxResultsPerCrawl || this.pagesOutputted < this.maxResultsPerCrawl) return;
-        log.info(`User set limit of ${this.maxResultsPerCrawl} results was reached. Finishing the crawl.`);
+        if (!this.input.maxResultsPerCrawl || this.pagesOutputted < this.input.maxResultsPerCrawl) return;
+        log.info(`User set limit of ${this.input.maxResultsPerCrawl} results was reached. Finishing the crawl.`);
         await this.crawler.abort();
         return true;
     }
@@ -206,17 +200,17 @@ class CrawlerSetup {
 
     async _handleLinks(state, request, $) {
         const currentDepth = request.userData[META_KEY].depth;
-        const hasReachedMaxDepth = this.maxCrawlingDepth && currentDepth >= this.maxCrawlingDepth;
+        const hasReachedMaxDepth = this.input.maxCrawlingDepth && currentDepth >= this.input.maxCrawlingDepth;
         if (hasReachedMaxDepth) {
             log.debug(`Request ${request.id} reached the maximum crawling depth of ${currentDepth}.`);
             return;
         }
-        const canEnqueue = !state.skipLinks && this.pseudoUrls.length && this.linkSelector;
+        const canEnqueue = !state.skipLinks && this.pseudoUrlInstances.length && this.input.linkSelector;
         if (canEnqueue && !hasReachedMaxDepth) {
             await tools.enqueueLinks(
                 $,
-                this.linkSelector,
-                this.pseudoUrls,
+                this.input.linkSelector,
+                this.pseudoUrlInstances,
                 this.requestQueue,
                 request,
             );
