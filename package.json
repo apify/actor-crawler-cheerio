@@ -9,6 +9,7 @@
 		"underscore": "^1.9.1"
 	},
 	"devDependencies": {
+		"@types/puppeteer": "^1.10.0",
 		"chai": "^4.2.0",
 		"eslint": "^5.8.0",
 		"eslint-config-airbnb": "^17.1.0",

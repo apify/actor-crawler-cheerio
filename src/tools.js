@@ -39,7 +39,7 @@ exports.enqueueLinks = async ($, selector, purls, requestQueue, parentRequest) =
             ? pathOrUrl
             : resolve(parentRequest.url, pathOrUrl);
 
-        purls
+        purls // TODO revise after uniqueKey generation
             .filter(purl => purl.matches(url))
             .forEach(purl => requests.push(purl.createRequest(url)));
     });

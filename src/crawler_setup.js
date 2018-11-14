@@ -51,9 +51,9 @@ class CrawlerSetup {
 
         // Validations
         if (this.input.pseudoUrls.length && !this.input.useRequestQueue) {
-            throw new Error('Cannot enqueue links using Pseudo URLs without using a Request Queue. ' +
-                'Either select the "Use Request Queue" option to enable Request Queue or ' +
-                'remove your Pseudo URLs.');
+            throw new Error('Cannot enqueue links using Pseudo URLs without using a Request Queue. '
+                + 'Either select the "Use Request Queue" option to enable Request Queue or '
+                + 'remove your Pseudo URLs.');
         }
 
         // Side effects
@@ -69,6 +69,7 @@ class CrawlerSetup {
         this.requestList = null;
         this.requestQueue = null;
         this.dataset = null;
+        this.keyValueStore = null;
         this.initPromise = this._initializeAsync();
     }
 
@@ -126,7 +127,7 @@ class CrawlerSetup {
     }
 
     async handleFailedRequestFunction({ request }) {
-        log.error(`Request ${request.id} failed ${this.maxRequestRetries + 1} times. Marking as failed.`);
+        log.error(`Request ${request.id} failed ${this.input.maxRequestRetries + 1} times. Marking as failed.`);
         return this._handleResult(request, null, true);
     }
 
@@ -169,11 +170,6 @@ class CrawlerSetup {
         /**
          * POST-PROCESSING
          */
-        // If the user invoked the `willFinishLater()` context function,
-        // this prevents the internal `handlePageFunction` from returning until
-        // the user calls the `finish()` context function.
-        await this._handleWillFinishLater(state);
-
         // Enqueue more links if Pseudo URLs and a clickable selector are available,
         // unless the user invoked the `skipLinks()` context function
         // or maxCrawlingDepth would be exceeded.
@@ -190,12 +186,6 @@ class CrawlerSetup {
         log.info(`User set limit of ${this.input.maxResultsPerCrawl} results was reached. Finishing the crawl.`);
         await this.crawler.abort();
         return true;
-    }
-
-    async _handleWillFinishLater(state) {
-        if (!state.finishPromise) return;
-        log.debug('Waiting for context.finish() to be called!');
-        await state.finishPromise;
     }
 
     async _handleLinks(state, request, $) {

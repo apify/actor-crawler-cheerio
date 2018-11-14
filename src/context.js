@@ -21,22 +21,20 @@ class Context {
         // Private
         this[setup] = crawlerSetup;
         this[state] = {
-            finishPromise: null,
-            finishResolve: null,
             skipLinks: false,
             skipOutput: false,
         };
 
         // Public
+        this.input = JSON.parse(crawlerSetup.rawInput);
+        this.env = Object.assign({}, crawlerSetup.env);
         this.customData = crawlerSetup.customData;
+
         this.requestList = crawlerSetup.requestList;
         this.requestQueue = crawlerSetup.requestQueue;
         this.dataset = crawlerSetup.dataset;
         this.keyValueStore = crawlerSetup.keyValueStore;
         this.client = Apify.client;
-
-        this.input = JSON.parse(crawlerSetup.rawInput);
-        this.env = Object.assign({}, crawlerSetup.env);
 
         Object.assign(this, pageFunctionArguments);
     }
@@ -51,22 +49,6 @@ class Context {
         this[state].skipOutput = true;
     }
 
-    willFinishLater() {
-        log.debug('context.willFinishLater() called');
-        this[state].finishPromise = new Promise((resolve, reject) => {
-            this[state].finishResolve = resolve;
-            this[state].finishReject = reject;
-        });
-    }
-
-    finish(err) {
-        if (!this[state].finishResolve) {
-            throw new Error('context.willFinishLater() must be called before context.finish()!');
-        }
-        log.debug('context.finish() called');
-        if (err) this[state].finishReject(err);
-        else this[state].finishResolve();
-    }
     enqueuePage(newRequest) {
         if (!this[setup].useRequestQueue) {
             throw new Error('Input parameter "useRequestQueue" must be set to true to be able to enqueue new requests.');
