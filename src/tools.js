@@ -44,7 +44,7 @@ exports.enqueueLinks = async ($, selector, purls, requestQueue, parentRequest) =
             .forEach(purl => requests.push(purl.createRequest(url)));
     });
 
-    const requestOperationInfos = [];
+    const queueOperationInfos = [];
     for (const request of requests) {
         // When parent has no depth, it must be the first one.
         const parentDepth = parentRequest.userData[META_KEY].depth || 0;
@@ -58,11 +58,11 @@ exports.enqueueLinks = async ($, selector, purls, requestQueue, parentRequest) =
             childRequestIds: {},
         };
         // Enqueue the new request.
-        requestOperationInfos.push(await requestQueue.addRequest(newRequest));
+        queueOperationInfos.push(await requestQueue.addRequest(newRequest));
         // Add it to its parent's list.
         parentRequest.userData[META_KEY].childRequestIds[newRequest.id] = 1;
     }
-    return requestOperationInfos;
+    return queueOperationInfos;
 };
 
 exports.maybeParseJson = (maybeJson, paramName) => {
