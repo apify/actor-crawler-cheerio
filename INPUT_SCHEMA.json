@@ -120,6 +120,15 @@
             "maximum": 360,
             "unit": "secs"
         },
+        "pageFunctionTimeoutSecs": {
+            "title": "Page function timeout",
+            "type": "integer",
+            "description": "Maximum time the crawler will wait for the page function to execute in seconds.",
+            "minimum": 1,
+            "default": 20,
+            "maximum": 360,
+            "unit": "secs"
+        },
         "customData": {
             "title": "Custom data",
             "type": "object",

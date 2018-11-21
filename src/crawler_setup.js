@@ -28,6 +28,7 @@ const { utils: { log } } = Apify;
  * @property {number} minConcurrency
  * @property {number} maxConcurrency
  * @property {number} pageLoadTimeoutSecs
+ * @property {number} pageFunctionTimeoutSecs
  * @property {Object} customData
  */
 
@@ -37,11 +38,11 @@ const { utils: { log } } = Apify;
  */
 class CrawlerSetup {
     constructor(input, environment) {
-        // Validate INPUT if not running on Apify Cloud Platform.
-        if (!Apify.isAtHome()) tools.checkInputOrThrow(input);
-
         // Keep this as string to be immutable.
         this.rawInput = JSON.stringify(input);
+
+        // Validate INPUT if not running on Apify Cloud Platform.
+        if (!Apify.isAtHome()) tools.checkInputOrThrow(input);
 
         /**
          * @type {Input}
@@ -104,7 +105,7 @@ class CrawlerSetup {
             requestList: this.requestList,
             requestQueue: this.requestQueue,
             // requestFunction: use default,
-            // handlePageTimeoutSecs: use default,
+            handlePageTimeoutSecs: this.input.pageFunctionTimeoutSecs,
             requestTimeoutSecs: this.input.pageLoadTimeoutSecs,
             ignoreSslErrors: this.input.ignoreSslErrors,
             handleFailedRequestFunction: this.handleFailedRequestFunction.bind(this),
@@ -209,8 +210,8 @@ class CrawlerSetup {
         }
     }
 
-    async _handleResult(request, pageFunctionResult) {
-        const payload = tools.createDatasetPayload(request, pageFunctionResult);
+    async _handleResult(request, pageFunctionResult, isError) {
+        const payload = tools.createDatasetPayload(request, pageFunctionResult, isError);
         await Apify.pushData(payload);
         this.pagesOutputted++;
     }
