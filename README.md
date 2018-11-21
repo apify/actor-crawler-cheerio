@@ -50,8 +50,6 @@ const context = {
     // See https://www.apify.com/docs/crawler#pageFunction for docs.
     skipLinks,
     skipOutput,
-    willFinishLater,
-    finish,
     enqueuePage,
 }
 ```
@@ -78,5 +76,5 @@ If you were scraping the HTML `<title>` of [IANA](https://www.iana.org/) it woul
 }
 ```
 
-The metadata are prefixed with a `#` and you may easily remove them from the results in the App or API
-by selecting the **simplified** version.
+The metadata are prefixed with a `#`. Soon you will be able to exclude the metadata
+from the results by providing an API flag.

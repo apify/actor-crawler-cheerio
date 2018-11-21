@@ -8,8 +8,7 @@
             "type": "array",
             "description": "URLs to start with",
             "prefill": [
-                { "url": "http://example.com" },
-                { "url": "http://example.com/some-path" }
+                { "url": "https://www.iana.org/" }
             ],
             "editor": "requestListSources"
         },
@@ -56,7 +55,7 @@
             "groupDescription": "Crawler settings"
         },
         "ignoreSslErrors": {
-            "title": "Ignore SSL errors?",
+            "title": "Ignore SSL errors",
             "type": "boolean",
             "description": "Crawler will ignore SSL certificate errors.",
             "default": false
