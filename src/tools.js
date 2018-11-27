@@ -7,13 +7,6 @@ const Ajv = require('ajv');
 const { META_KEY } = require('./consts');
 const schema = require('../INPUT_SCHEMA.json');
 
-exports.requestToRpOpts = (request) => {
-    const opts = _.pick(request, 'url', 'method', 'headers');
-    opts.body = request.payload;
-
-    return opts;
-};
-
 exports.evalPageFunctionOrThrow = (funcString) => {
     let func;
 
@@ -63,16 +56,6 @@ exports.enqueueLinks = async ($, selector, purls, requestQueue, parentRequest) =
         parentRequest.userData[META_KEY].childRequestIds[newRequest.id] = 1;
     }
     return queueOperationInfos;
-};
-
-exports.maybeParseJson = (maybeJson, paramName) => {
-    if (!_.isString(maybeJson)) return maybeJson;
-
-    try {
-        return JSON.parse(maybeJson);
-    } catch (err) {
-        throw new Error(`Input parameter ${paramName} is not valid JSON: ${err}`);
-    }
 };
 
 exports.checkInputOrThrow = (input) => {
