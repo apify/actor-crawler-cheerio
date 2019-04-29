@@ -1,4 +1,6 @@
-# Apify Crawler Cheerio
+# DEPRECATED: Apify Crawler Cheerio
+
+Visit https://github.com/apifytech/actor-scraper/tree/master/cheerio-scraper for the current version.
 
 <!-- toc -->
 
